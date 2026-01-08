@@ -54,16 +54,8 @@ const App: React.FC = () => {
     localStorage.getItem('habitflow_darkmode') === 'true'
   );
 
-  const [newHabit, setNewHabit] = useState<Partial<Habit>>({
-    name: '',
-    description: '',
-    category: 'General',
-    frequency: 'daily',
-    color: '#6366f1'
-  });
-
   // --- Theme Helper ---
-  const themeColors = {
+  const themeColors = useMemo(() => ({
     primary: theme === 'blue' ? 'indigo' : 'rose',
     primaryHex: theme === 'blue' ? '#6366f1' : '#f43f5e',
     secondary: theme === 'blue' ? 'violet' : 'pink',
@@ -72,7 +64,20 @@ const App: React.FC = () => {
     border: theme === 'blue' ? 'border-indigo-100' : 'border-rose-100',
     shadow: theme === 'blue' ? 'shadow-indigo-100' : 'shadow-rose-100',
     gradient: theme === 'blue' ? 'from-indigo-600 to-violet-700' : 'from-rose-500 to-pink-600'
-  };
+  }), [theme]);
+
+  const [newHabit, setNewHabit] = useState<Partial<Habit>>({
+    name: '',
+    description: '',
+    category: 'General',
+    frequency: 'daily',
+    color: themeColors.primaryHex
+  });
+
+  // Reset default color when theme changes
+  useEffect(() => {
+    setNewHabit(prev => ({ ...prev, color: themeColors.primaryHex }));
+  }, [themeColors.primaryHex]);
 
   // --- Persistence & Effects ---
   useEffect(() => {
@@ -156,7 +161,13 @@ const App: React.FC = () => {
     setHabits(prev => [...prev, habit]);
     setIsModalOpen(false);
     setAiSuggestions([]);
-    setNewHabit({ name: '', description: '', category: 'General', frequency: 'daily', color: themeColors.primaryHex });
+    setNewHabit({ 
+      name: '', 
+      description: '', 
+      category: 'General', 
+      frequency: 'daily', 
+      color: themeColors.primaryHex 
+    });
     setActiveTab('today');
   };
 
@@ -274,7 +285,6 @@ const App: React.FC = () => {
               </p>
             </section>
 
-            {/* Containing the stats scroll to prevent page jitter */}
             <div className="relative -mx-5 px-5 mb-8 overflow-hidden">
               <section className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
                 <div className={`flex-shrink-0 p-5 rounded-[2rem] shadow-xl w-40 flex flex-col justify-between text-white ${theme === 'blue' ? 'bg-indigo-600 shadow-indigo-100' : 'bg-rose-500 shadow-rose-100'} ${isDarkMode ? 'shadow-none' : ''}`}>
@@ -581,7 +591,7 @@ const App: React.FC = () => {
         )}
       </main>
 
-      {/* --- Mobile Bottom Navigation (Safe Area Aware) --- */}
+      {/* --- Mobile Bottom Navigation --- */}
       <nav className={`md:hidden fixed bottom-0 left-0 right-0 backdrop-blur-xl border-t px-4 pt-3 pb-[calc(1.5rem+env(safe-area-inset-bottom))] flex items-center justify-between z-40 transition-colors ${isDarkMode ? 'bg-slate-950/90 border-slate-800' : 'bg-white/90 border-slate-100'}`}>
         <button 
           onClick={() => setActiveTab('today')}

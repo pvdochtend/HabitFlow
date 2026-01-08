@@ -2,7 +2,8 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Habit } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+// Always use the injected process.env.API_KEY directly
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const getHabitSuggestions = async (goal: string) => {
   const response = await ai.models.generateContent({
@@ -26,10 +27,13 @@ export const getHabitSuggestions = async (goal: string) => {
     },
   });
   
-  return JSON.parse(response.text);
+  // Directly access .text property
+  return JSON.parse(response.text || "[]");
 };
 
 export const getWeeklyInsight = async (habits: Habit[]) => {
+  if (habits.length === 0) return "Add your first habit to get started!";
+  
   const habitsSummary = habits.map(h => ({
     name: h.name,
     completionsCount: h.completedDates.length,
